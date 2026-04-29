@@ -21,6 +21,7 @@
 ;;; Code:
 (require 'cc-mode)
 (require 'project)
+(require 'json)
 
 (defgroup cppinsights nil
   "Integration with cppinsights tool."
@@ -52,26 +53,86 @@ Returns the filename on success or signals an error if requirements aren't met."
     
     filename))
 
+(defun cppinsights--read-compile-db (compile-db-path)
+  "Read and parse COMPILE-DB-PATH as JSON, returning a list of alists."
+  (let ((json-array-type 'list)
+        (json-object-type 'alist))
+    (json-read-file compile-db-path)))
+
+(defun cppinsights--find-db-entry (db filename)
+  "Find the entry in DB matching FILENAME.
+Tries exact match first, then falls back to basename match."
+  (let ((basename (file-name-nondirectory filename)))
+    (or (seq-find (lambda (e) (string-equal (alist-get 'file e) filename)) db)
+        (seq-find (lambda (e) (string-equal (file-name-nondirectory (alist-get 'file e))
+                                            basename))
+                  db))))
+
+(defun cppinsights--entry-args (entry)
+  "Extract the argument list from a compile DB ENTRY.
+Uses `arguments' if present, otherwise splits `command'."
+  (or (alist-get 'arguments entry)
+      (split-string (alist-get 'command entry ""))))
+
+(defun cppinsights--resolve-path (path directory)
+  "Resolve PATH relative to DIRECTORY if it is not absolute."
+  (expand-file-name path directory))
+
+(defun cppinsights--extract-flag (arg rest directory)
+  "Classify ARG and return (consumed-count . flags) or nil.
+REST is the remaining args after ARG.  DIRECTORY is the build dir
+for resolving relative include paths."
+  (cond
+   ((or (string-prefix-p "-D" arg)
+        (string-prefix-p "-std=" arg)
+        (string-prefix-p "-f" arg))
+    (cons 0 (list arg)))
+   ((string-equal arg "-I")
+    (when rest
+      (cons 1 (list (concat "-I" (cppinsights--resolve-path (car rest) directory))))))
+   ((string-prefix-p "-I" arg)
+    (cons 0 (list (concat "-I" (cppinsights--resolve-path (substring arg 2) directory)))))
+   ((string-equal arg "-isystem")
+    (when rest
+      (cons 1 (list "-isystem" (cppinsights--resolve-path (car rest) directory)))))))
+
+(defun cppinsights--collect-flags (args directory)
+  "Walk ARGS and collect relevant compiler flags.
+DIRECTORY is used to resolve relative include paths."
+  (let ((flags '()))
+    (while args
+      (let ((result (cppinsights--extract-flag (car args) (cdr args) directory)))
+        (when result
+          (setq flags (nconc flags (cdr result)))
+          (dotimes (_ (car result)) (setq args (cdr args)))))
+      (setq args (cdr args)))
+    flags))
+
+(defun cppinsights--compile-db-flags (compile-db-path filename)
+  "Extract compiler flags from COMPILE-DB-PATH for FILENAME."
+  (let* ((db (cppinsights--read-compile-db compile-db-path))
+         (entry (cppinsights--find-db-entry db filename)))
+    (when entry
+      (cppinsights--collect-flags
+       (cppinsights--entry-args entry)
+       (alist-get 'directory entry)))))
+
 (defun cppinsights--build-command (filename)
   "Build the command to run cppinsights on FILENAME.
-Detects if a compile_commands.json exists in the project root and uses
-an appropriate command format based on this discovery.  Will use
-project-provided compilation settings when available, otherwise
-falls back to configured options."
+Extracts compiler flags from compile_commands.json when available,
+otherwise falls back to `cppinsights-clang-opts'."
   (let* ((current-dir (file-name-directory filename))
          (current_proj (project-current))
          (proj-root (if current_proj
                         (project-root current_proj)
                       current-dir))
-         (use-compile-db (file-exists-p
-                          (expand-file-name "compile_commands.json" proj-root))))
-    (if use-compile-db
-        (append (list cppinsights-program)
-                (list filename))
-      (append (list cppinsights-program)
-              (list filename)
-              '("--")
-              cppinsights-clang-opts))))
+         (compile-db (expand-file-name "compile_commands.json" proj-root)))
+    (let ((flags (if (file-exists-p compile-db)
+                     (append (cppinsights--compile-db-flags compile-db filename)
+                             cppinsights-clang-opts)
+                   cppinsights-clang-opts)))
+      (append (list cppinsights-program filename)
+              (when flags (cons "--" flags))))))
 
 (defun cppinsights--handle-process-success (stdout-buffer stderr-buffer)
   "Handle successful cppinsights process.
