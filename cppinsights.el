@@ -1,6 +1,6 @@
 ;;; cppinsights.el --- Integration with cppinsights tool -*- lexical-binding: t; -*-
 
-;; Author: Chris Chen <chrischen@ignity.xyz>
+;; Author: Chris Chen <chrischen@ignity.xyz> Xichen Zhou <sichem.zh@gmail.com>
 ;; Version: 0.1
 ;; Keywords: c++, tools, cppinsights
 ;; Package-Requires: ((emacs "28.1"))
