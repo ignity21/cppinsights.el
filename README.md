@@ -1,6 +1,6 @@
 # cppinsights.el
 
-[![EMACS](https://img.shields.io/badge/Emacs-26.1-922793?logo=gnu-emacs&logoColor=b39ddb&.svg)](https://www.gnu.org/savannah-checkouts/gnu/emacs/emacs.html)
+[![EMACS](https://img.shields.io/badge/Emacs-28.1-922793?logo=gnu-emacs&logoColor=b39ddb&.svg)](https://www.gnu.org/savannah-checkouts/gnu/emacs/emacs.html)
 ![GitHub License](https://img.shields.io/github/license/chrischen3121/cppinsights.el)
 [![MELPA](https://melpa.org/packages/cppinsights-badge.svg)](https://melpa.org/#/cppinsights)
 
@@ -59,8 +59,8 @@ pamac install cppinsights
   :commands cppinsights-run
   :custom
   ;; Customize variables as needed
-  (cppinsights-binary "insights")  ;; Path to the insights binary
-  (cppinsights-extra-args '("-std=c++17"))  ;; Additional arguments to pass to C++ Insights
+  (cppinsights-program "insights")  ;; Path to the insights binary
+  (cppinsights-clang-opts '("-std=c++17"))  ;; Additional arguments to pass to internal clang
   :bind
   ;; Add keybinding for cppinsights-run
   (:map c++-mode-map
