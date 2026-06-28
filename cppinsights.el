@@ -1,7 +1,7 @@
 ;;; cppinsights.el --- Integration with cppinsights tool -*- lexical-binding: t; -*-
 
 ;; Author: Chris Chen <chrischen@ignity.xyz>
-;; Version: 0.1
+;; Version: 0.2
 ;; Keywords: c++, tools, cppinsights
 ;; Package-Requires: ((emacs "28.1"))
 ;; URL: https://github.com/chrischen3121/cppinsights.el
@@ -44,6 +44,16 @@ literal number of columns.  The value is passed through verbatim
 to `display-buffer-in-side-window' via its `window-width' entry,
 which already understands both forms."
   :type 'number
+  :group 'cppinsights)
+
+(defcustom cppinsights-output-mode
+  (if (fboundp 'c++-ts-mode) #'c++-ts-mode #'c++-mode)
+  "Major mode applied to the cppinsights output buffer.
+Defaults to `c++-ts-mode' when available (Emacs 29+ with the C++
+tree-sitter grammar installed) and falls back to the classic
+`c++-mode' otherwise.  Set to any function of no arguments that
+switches the current buffer into a major mode."
+  :type 'function
   :group 'cppinsights)
 
 (defun cppinsights--validate-file ()
@@ -91,7 +101,7 @@ falls back to configured options."
 Show STDOUT-BUFFER with C++ mode and clean up STDERR-BUFFER."
   (kill-buffer stderr-buffer)
   (with-current-buffer stdout-buffer
-    (c++-mode)
+    (funcall cppinsights-output-mode)
     (read-only-mode 1)
     (let ((map (make-sparse-keymap)))
       (set-keymap-parent map (current-local-map))
