@@ -1,7 +1,7 @@
 # cppinsights.el
 
 [![EMACS](https://img.shields.io/badge/Emacs-28.1-922793?logo=gnu-emacs&logoColor=b39ddb&.svg)](https://www.gnu.org/savannah-checkouts/gnu/emacs/emacs.html)
-![GitHub License](https://img.shields.io/github/license/chrischen3121/cppinsights.el)
+![GitHub License](https://img.shields.io/github/license/ignity21/cppinsights.el)
 [![MELPA](https://melpa.org/packages/cppinsights-badge.svg)](https://melpa.org/#/cppinsights)
 
 
@@ -55,7 +55,7 @@ pamac install cppinsights
 #### With Straight
 ``` elisp
 (use-package cppinsights
-  :straight (:host github :repo "chrischen3121/cppinsights.el")
+  :straight (:host github :repo "ignity21/cppinsights.el")
   :commands cppinsights-run
   :custom
   ;; Customize variables as needed
@@ -72,7 +72,7 @@ pamac install cppinsights
 In `packages.el`:
 ``` elisp
 (package! cppinsights
-  :recipe (:host github :repo "chrischen3121/cppinsights.el"))
+  :recipe (:host github :repo "ignity21/cppinsights.el"))
 ```
 
 In `config.el`:
@@ -90,7 +90,7 @@ In `config.el`:
 
 #### With `package-vc-install` (Emacs 30+ built-in)
 ``` elisp
-(package-vc-install '(cppinsights :url "https://github.com/chrischen3121/cppinsights.el"))
+(package-vc-install '(cppinsights :url "https://github.com/ignity21/cppinsights.el"))
 ```
 
 ## Usage

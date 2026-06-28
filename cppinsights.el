@@ -4,7 +4,7 @@
 ;; Version: 0.2
 ;; Keywords: c++, tools, cppinsights
 ;; Package-Requires: ((emacs "28.1"))
-;; URL: https://github.com/chrischen3121/cppinsights.el
+;; URL: https://github.com/ignity21/cppinsights.el
 ;; SPDX-License-Identifier: Apache-2.0
 
 ;; This file is not part of GNU Emacs.
